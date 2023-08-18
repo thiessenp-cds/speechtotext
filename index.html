@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Type What I Speek</title>
+  </head>
+  <body>
+    <h1>Type What I Speek</h1>
+
+    <div>
+      <label>Type what I speek <input id="speechToText" /></label>
+    </div>
+
+    <script>
+      const SR = typeof SpeechRecognition === "undefined" ?  webkitSpeechRecognition : SpeechRecognition;
+      const SGL = typeof SpeechGrammarList === "undefined" ? window.webkitSpeechGrammarList : SpeechGrammarList;
+      const sr = new SR();
+
+      sr.continuous = false;
+      sr.lang = 'en-US';
+      sr.interimResults = false;
+      sr.maxAlternatives = 1;
+
+      const inputEl = document.querySelector("#speechToText");
+      
+      inputEl.onclick = function(e) {
+        sr.start();
+      }
+
+      sr.onspeechend = function() {
+        sr.stop();
+      }
+
+      sr.onresult = function(e) {
+        // Could add a confidence check so e.g. below 70 ask to try again
+        // if (sr.results[0][0].confidence < .70) { do something }
+
+        const result = e.results[0][0].transcript;
+        inputEl.value = result;
+      }
+
+      sr.onnomatch = function() {
+        alert("I didn't get that could you try again and speek slower.");
+      }
+    </script>
+  </body>
+</html>
