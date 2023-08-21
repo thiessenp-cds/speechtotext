@@ -13,24 +13,66 @@
       <label>Type what I speek <input id="speechToText" /></label>
     </div>
 
+    <div>
+      <label>Type what I speek 2 <input id="speechToText2" /></label>
+    </div>
+
+    <div>
+      <label>Type what I speek 3 <textarea id="speechToText3"></textarea></label>
+    </div>
+
     <script>
+      // API ref https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition/SpeechRecognition
+
       const SR = typeof SpeechRecognition === "undefined" ?  webkitSpeechRecognition : SpeechRecognition;
-      const SGL = typeof SpeechGrammarList === "undefined" ? window.webkitSpeechGrammarList : SpeechGrammarList;
       const sr = new SR();
+      const inputEl = document.querySelector("#speechToText");
+      const inputEl2 = document.querySelector("#speechToText2");
+      const inputEl3 = document.querySelector("#speechToText3");
+      let srStarted = false;
+      let currentInputEl = null;
 
       sr.continuous = false;
       sr.lang = 'en-US';
       sr.interimResults = false;
       sr.maxAlternatives = 1;
 
-      const inputEl = document.querySelector("#speechToText");
-      
-      inputEl.onclick = function(e) {
-        sr.start();
+
+      // asnyc etc doesn't really help for waiting till end or checking in use, need to look at api
+      // more
+      async function startSR() {
+        if (!srStarted) {
+          await sr.start();
+        }
+      }
+
+      // inputEl.onfocus would be called twice, on entering and after alowing mic again so
+      // it fails since two instances of the APi start. probably solve by a sking for mic permission
+      // ahead of time
+
+      // inputEl.onclick = inputEl3.onfocus = function(e) {
+      inputEl.onclick = inputEl3.onfocus = async function(e) {
+        await startSR();
+        currentInputEl = this;
+      }
+
+      inputEl2.onclick = async function(e) {
+        await startSR();
+        currentInputEl = this;
+      }
+
+      inputEl3.onclick = async function(e) {
+        await startSR();
+        currentInputEl = this;
+      }
+
+      sr.onstart = function() {
+        srStarted = true;
       }
 
       sr.onspeechend = function() {
         sr.stop();
+        srStarted = false;
       }
 
       sr.onresult = function(e) {
@@ -38,7 +80,9 @@
         // if (sr.results[0][0].confidence < .70) { do something }
 
         const result = e.results[0][0].transcript;
-        inputEl.value = result;
+        currentInputEl.value = result;
+
+        currentInputEl = null;
       }
 
       sr.onnomatch = function() {
